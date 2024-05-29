@@ -13,7 +13,6 @@ class Seeker {
   changeDirection() {
     this.direction = Math.floor(Math.random() * 4);
     this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed;
-    // console.log(`Seeker changed direction to: ${this.getDirectionString()}`);
   }
 
   getDirectionString() {
@@ -59,15 +58,9 @@ class Seeker {
       this.y = newY;
     } else {
       this.changeDirection();
-      this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed;
     }
 
     this.moveTime--;
-    console.log(
-      `Seeker moved to (${this.x}, ${
-        this.y
-      }) facing ${this.getDirectionString()}`
-    );
   }
 
   chase(target, WIDTH, HEIGHT, obstacles) {
@@ -95,12 +88,6 @@ class Seeker {
       this.x = newX;
       this.y = newY;
     }
-
-    console.log(
-      `Seeker chasing towards (${this.x}, ${
-        this.y
-      }) facing ${this.getDirectionString()}`
-    );
   }
 
   avoidObstacle(dx, dy, WIDTH, HEIGHT, obstacles) {
@@ -135,32 +122,28 @@ class Seeker {
         this.x = newX;
         this.y = newY;
         this.direction = direction;
-        console.log(
-          `Seeker avoiding obstacle, now moving ${this.getDirectionString()}`
-        );
         break;
       }
     }
   }
 
-  canSee(target, obstacles) {
-    const dx = target.x - this.x;
-    const dy = target.y - this.y;
+  canSee(hider, obstacles) {
+    const dx = hider.x - this.x;
+    const dy = hider.y - this.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance > this.viewRadius) {
       return false;
     }
 
+    if (hider.isInsidePermeableObstacle(obstacles)) {
+      return false;
+    }
+
     for (let obstacle of obstacles) {
       if (
-        this.lineIntersectsRectangle(
-          this.x,
-          this.y,
-          target.x,
-          target.y,
-          obstacle
-        )
+        !obstacle.permeable &&
+        this.lineIntersectsRectangle(this.x, this.y, hider.x, hider.y, obstacle)
       ) {
         return false;
       }
@@ -169,9 +152,17 @@ class Seeker {
     return true;
   }
 
+  isPointInsideRectangle(px, py, rect) {
+    return (
+      px > rect.x &&
+      px < rect.x + rect.width &&
+      py > rect.y &&
+      py < rect.y + rect.height
+    );
+  }
+
   lineIntersectsRectangle(x1, y1, x2, y2, rect) {
     const { x, y, width, height } = rect;
-
     return (
       this.lineIntersectsLine(x1, y1, x2, y2, x, y, x + width, y) ||
       this.lineIntersectsLine(x1, y1, x2, y2, x, y, x, y + height) ||
@@ -239,6 +230,15 @@ class Seeker {
     const dy = this.y - other.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     return distance < this.radius + other.radius;
+  }
+
+  getDistanceTo(obstacle) {
+    const obstacleCenterX = obstacle.x + obstacle.width / 2;
+    const obstacleCenterY = obstacle.y + obstacle.height / 2;
+    return Math.sqrt(
+      Math.pow(obstacleCenterX - this.x, 2) +
+        Math.pow(obstacleCenterY - this.y, 2)
+    );
   }
 
   isObstacleBlocking(x, y, obstacles) {

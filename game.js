@@ -7,7 +7,6 @@ const ctx = canvas.getContext("2d");
 
 const WIDTH = 800;
 const HEIGHT = 800;
-const GRID_SIZE = 40;
 
 class Game {
   constructor(
@@ -118,20 +117,22 @@ class Game {
 
   checkCollision() {
     for (let hider of this.hiders) {
-      if (this.seeker.collidesWith(hider)) {
+      console.log(hider.isInsidePermeableObstacle(this.obstacles));
+      if (
+        this.seeker.collidesWith(hider) &&
+        !hider.isInsidePermeableObstacle(this.obstacles)
+      ) {
         hider.color = "yellow";
         hider.speed = 0;
       }
     }
   }
 
-  checkVisibility(seeker, hider) {
-    const visible = seeker.canSee(hider, this.obstacles);
+  checkVisibility(seeker, hider, obstacles) {
+    const visible = seeker.canSee(hider, obstacles);
     if (visible) {
-      hider.escapeFrom(seeker);
+      hider.escapeFrom(seeker, obstacles);
     }
-    //   hider.move(WIDTH, HEIGHT, this.obstacles);
-    // }
     return visible;
   }
 
@@ -153,7 +154,7 @@ class Game {
     for (let hider of this.hiders) {
       if (hider.speed > 0) {
         allHidersCaught = false;
-        this.checkVisibility(this.seeker, hider);
+        this.checkVisibility(this.seeker, hider, this.obstacles);
       }
       hider.move(WIDTH, HEIGHT, this.obstacles);
       hider.draw(ctx, this.obstacles);
@@ -166,7 +167,9 @@ class Game {
     }
 
     const visibleHider = this.hiders.find(
-      (hider) => this.checkVisibility(this.seeker, hider) && hider.speed > 0
+      (hider) =>
+        this.checkVisibility(this.seeker, hider, this.obstacles) &&
+        hider.speed > 0
     );
     if (visibleHider) {
       this.seeker.chase(visibleHider, WIDTH, HEIGHT, this.obstacles);
@@ -202,8 +205,8 @@ window.startGame = function () {
   const numHiders = parseInt(document.getElementById("numHiders").value);
   const numObstacles = parseInt(document.getElementById("numObstacles").value);
   const viewRadius = parseInt(document.getElementById("viewRadius").value);
-  const seekerSpeed = parseInt(document.getElementById("seekerSpeed").value);
-  const hiderSpeed = parseInt(document.getElementById("hiderSpeed").value);
+  const seekerSpeed = parseFloat(document.getElementById("seekerSpeed").value);
+  const hiderSpeed = parseFloat(document.getElementById("hiderSpeed").value);
   const permeablePercent = parseInt(
     document.getElementById("permeablePercent").value
   );
