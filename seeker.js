@@ -1,18 +1,34 @@
 class Seeker {
-  constructor(x, y, radius) {
+  constructor(x, y, radius, viewRadius, speed) {
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = "red";
-    this.speed = 1;
-    this.viewRadius = 50;
+    this.speed = speed;
+    this.viewRadius = viewRadius;
     this.direction = Math.floor(Math.random() * 4);
-    this.moveTime = (Math.floor(Math.random() * 3) + 1) * 60;
+    this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed;
   }
 
   changeDirection() {
     this.direction = Math.floor(Math.random() * 4);
-    this.moveTime = (Math.floor(Math.random() * 5) + 1) * 60; // time to move in one direction (1 to 3 seconds)
+    this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed;
+    // console.log(`Seeker changed direction to: ${this.getDirectionString()}`);
+  }
+
+  getDirectionString() {
+    switch (this.direction) {
+      case 0:
+        return "up";
+      case 1:
+        return "down";
+      case 2:
+        return "left";
+      case 3:
+        return "right";
+      default:
+        return "unknown";
+    }
   }
 
   move(WIDTH, HEIGHT, obstacles) {
@@ -43,10 +59,15 @@ class Seeker {
       this.y = newY;
     } else {
       this.changeDirection();
-      this.moveTime = (Math.floor(Math.random() * 5) + 1) * 60; // time to move in one direction (1 to 3 seconds)
+      this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed;
     }
 
     this.moveTime--;
+    console.log(
+      `Seeker moved to (${this.x}, ${
+        this.y
+      }) facing ${this.getDirectionString()}`
+    );
   }
 
   chase(target, WIDTH, HEIGHT, obstacles) {
@@ -57,21 +78,68 @@ class Seeker {
     let newX = this.x;
     let newY = this.y;
 
-    if (target.x > this.x && this.x + this.radius + this.speed < WIDTH) {
-      newX += this.speed;
-    } else if (target.x < this.x && this.x - this.radius - this.speed > 0) {
-      newX -= this.speed;
+    const dx = target.x - this.x;
+    const dy = target.y - this.y;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      newX += dx > 0 ? this.speed : -this.speed;
+      this.direction = dx > 0 ? 3 : 2; // Right or left
+    } else {
+      newY += dy > 0 ? this.speed : -this.speed;
+      this.direction = dy > 0 ? 1 : 0; // Down or up
     }
 
-    if (target.y > this.y && this.y + this.radius + this.speed < HEIGHT) {
-      newY += this.speed;
-    } else if (target.y < this.y && this.y - this.radius - this.speed > 0) {
-      newY -= this.speed;
-    }
-
-    if (this.canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles)) {
+    if (!this.canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles)) {
+      this.avoidObstacle(dx, dy, WIDTH, HEIGHT, obstacles);
+    } else {
       this.x = newX;
       this.y = newY;
+    }
+
+    console.log(
+      `Seeker chasing towards (${this.x}, ${
+        this.y
+      }) facing ${this.getDirectionString()}`
+    );
+  }
+
+  avoidObstacle(dx, dy, WIDTH, HEIGHT, obstacles) {
+    let directions = [];
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      directions = dx > 0 ? [3, 0, 1] : [2, 0, 1]; // right or left
+    } else {
+      directions = dy > 0 ? [1, 2, 3] : [0, 2, 3]; // down or up
+    }
+
+    for (let direction of directions) {
+      let newX = this.x;
+      let newY = this.y;
+
+      switch (direction) {
+        case 0: // up
+          newY -= this.speed;
+          break;
+        case 1: // down
+          newY += this.speed;
+          break;
+        case 2: // left
+          newX -= this.speed;
+          break;
+        case 3: // right
+          newX += this.speed;
+          break;
+      }
+
+      if (this.canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles)) {
+        this.x = newX;
+        this.y = newY;
+        this.direction = direction;
+        console.log(
+          `Seeker avoiding obstacle, now moving ${this.getDirectionString()}`
+        );
+        break;
+      }
     }
   }
 
@@ -104,7 +172,6 @@ class Seeker {
   lineIntersectsRectangle(x1, y1, x2, y2, rect) {
     const { x, y, width, height } = rect;
 
-    // Check if the line intersects any of the rectangle's sides
     return (
       this.lineIntersectsLine(x1, y1, x2, y2, x, y, x + width, y) ||
       this.lineIntersectsLine(x1, y1, x2, y2, x, y, x, y + height) ||
@@ -227,6 +294,10 @@ class Seeker {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     this.drawViewRadius(ctx, obstacles);
   }

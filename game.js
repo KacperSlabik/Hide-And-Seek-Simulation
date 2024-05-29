@@ -8,17 +8,28 @@ const ctx = canvas.getContext("2d");
 const WIDTH = 800;
 const HEIGHT = 800;
 const GRID_SIZE = 40;
-const NUM_CELLS = WIDTH / GRID_SIZE;
 
 class Game {
-  constructor() {
+  constructor(
+    numHiders,
+    numObstacles,
+    viewRadius,
+    seekerSpeed,
+    hiderSpeed,
+    permeablePercent
+  ) {
+    this.numHiders = numHiders;
+    this.numObstacles = numObstacles;
+    this.viewRadius = viewRadius;
+    this.seekerSpeed = seekerSpeed;
+    this.hiderSpeed = hiderSpeed;
+    this.permeablePercent = permeablePercent;
     this.obstacles = [];
     this.hiders = [];
     this.seeker = null;
-    this.visitedCells = Array(NUM_CELLS)
-      .fill()
-      .map(() => Array(NUM_CELLS).fill(false));
-
+    this.gameTime = 0;
+    this.gameInterval = null;
+    this.timerElement = document.getElementById("timer");
     this.initObstacles();
     this.initHiders();
     this.initSeeker();
@@ -26,12 +37,13 @@ class Game {
 
   initObstacles() {
     let i = 0;
-    while (i < 20) {
+    while (i < this.numObstacles) {
       const width = Math.floor(Math.random() * 120) + 30;
       const height = Math.floor(Math.random() * 120) + 30;
       const x = Math.floor(Math.random() * (WIDTH - width - 40)) + 20;
       const y = Math.floor(Math.random() * (HEIGHT - height - 40)) + 20;
-      const newObstacle = new Obstacle(x, y, width, height);
+      const permeable = Math.random() < this.permeablePercent / 100;
+      const newObstacle = new Obstacle(x, y, width, height, permeable);
 
       if (
         !this.obstacles.some((obstacle) => obstacle.collidesWith(newObstacle))
@@ -43,19 +55,21 @@ class Game {
   }
 
   initHiders() {
-    const segmentSize = 2; // Liczba segmentów na osi x i y
+    const segmentSize = 2;
     const segmentWidth = WIDTH / segmentSize;
     const segmentHeight = HEIGHT / segmentSize;
 
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < this.numHiders; i++) {
       let x, y;
       let validPosition = false;
       while (!validPosition) {
-        // Wybierz losowy segment
         const segmentX = Math.floor(Math.random() * segmentSize);
         const segmentY = Math.floor(Math.random() * segmentSize);
 
-        // Losuj współrzędne wewnątrz wybranego segmentu
+        if (segmentX === 0 && segmentY === 0) {
+          continue;
+        }
+
         x =
           Math.floor(Math.random() * (segmentWidth - 20)) +
           segmentX * segmentWidth +
@@ -65,78 +79,94 @@ class Game {
           segmentY * segmentHeight +
           10;
 
-        const newHider = new Hider(x, y, 10); // Radius 10
+        const newHider = new Hider(x, y, 10, this.hiderSpeed);
         validPosition = this.isPositionValid(newHider);
       }
-      this.hiders.push(new Hider(x, y, 10));
+      this.hiders.push(new Hider(x, y, 10, this.hiderSpeed));
     }
   }
 
   isPositionValid(newHider) {
-    if (this.obstacles.some((obstacle) => obstacle.collidesWith(newHider))) {
+    if (this.hiders.some((hider) => hider.collidesWith(newHider))) {
       return false;
     }
 
-    if (this.hiders.some((hider) => hider.collidesWith(newHider))) {
+    if (this.collidesWithObstacle(newHider)) {
       return false;
     }
 
     return true;
   }
 
+  collidesWithObstacle(newHider) {
+    return this.obstacles.some(
+      (obstacle) =>
+        !(
+          newHider.x + newHider.radius < obstacle.x ||
+          newHider.x - newHider.radius > obstacle.x + obstacle.width ||
+          newHider.y + newHider.radius < obstacle.y ||
+          newHider.y - newHider.radius > obstacle.y + obstacle.height
+        )
+    );
+  }
+
   initSeeker() {
-    const x = 10; // Adjusted to account for radius
-    const y = 10; // Adjusted to account for radius
-    this.seeker = new Seeker(x, y, 10); // Radius 10
+    const x = 10;
+    const y = 10;
+    this.seeker = new Seeker(x, y, 10, this.viewRadius, this.seekerSpeed);
   }
 
   checkCollision() {
     for (let hider of this.hiders) {
-      const dx = this.seeker.x - hider.x;
-      const dy = this.seeker.y - hider.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance < this.seeker.radius + hider.radius) {
+      if (this.seeker.collidesWith(hider)) {
         hider.color = "yellow";
-        hider.speed = 0; // Stop the hider from moving
-        return hider;
+        hider.speed = 0;
       }
     }
-    return null;
   }
 
   checkVisibility(seeker, hider) {
-    const dx = hider.x - seeker.x;
-    const dy = hider.y - seeker.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < seeker.viewRadius;
+    const visible = seeker.canSee(hider, this.obstacles);
+    if (visible) {
+      hider.escapeFrom(seeker);
+    }
+    //   hider.move(WIDTH, HEIGHT, this.obstacles);
+    // }
+    return visible;
+  }
+
+  updateGameTime() {
+    this.gameTime += 1;
+    if (this.timerElement) {
+      this.timerElement.textContent = `Time: ${this.gameTime}s`;
+    }
   }
 
   gameLoop() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-    // Draw obstacles
     for (let obstacle of this.obstacles) {
       obstacle.draw(ctx);
     }
 
-    // Move and draw hiders
+    let allHidersCaught = true;
     for (let hider of this.hiders) {
       if (hider.speed > 0) {
-        const dx = this.seeker.x - hider.x;
-        const dy = this.seeker.y - hider.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < 60) {
-          hider.escapeFrom(this.seeker);
-        }
+        allHidersCaught = false;
+        this.checkVisibility(this.seeker, hider);
       }
       hider.move(WIDTH, HEIGHT, this.obstacles);
-      hider.draw(ctx);
+      hider.draw(ctx, this.obstacles);
     }
 
-    // Move and draw seeker
+    if (allHidersCaught) {
+      clearInterval(this.gameInterval);
+      alert(`Game over! Time: ${this.gameTime}s`);
+      return;
+    }
+
     const visibleHider = this.hiders.find(
-      (hider) =>
-        this.checkVisibility(this.seeker, hider) && hider.color !== "yellow"
+      (hider) => this.checkVisibility(this.seeker, hider) && hider.speed > 0
     );
     if (visibleHider) {
       this.seeker.chase(visibleHider, WIDTH, HEIGHT, this.obstacles);
@@ -145,16 +175,46 @@ class Game {
     }
     this.seeker.draw(ctx, this.obstacles);
 
-    // Check for collisions
     this.checkCollision();
 
     requestAnimationFrame(this.gameLoop.bind(this));
   }
 
   start() {
+    if (this.gameInterval) {
+      clearInterval(this.gameInterval);
+    }
+    this.gameTime = 0;
+    if (this.timerElement) {
+      this.timerElement.textContent = `Time: ${this.gameTime}s`;
+    }
+    this.gameInterval = setInterval(this.updateGameTime.bind(this), 1000);
     this.gameLoop();
   }
 }
 
-const game = new Game();
-game.start();
+window.startGame = function () {
+  if (window.currentGame) {
+    clearInterval(window.currentGame.gameInterval); // Clear the interval of the previous game
+    window.currentGame = null;
+  }
+
+  const numHiders = parseInt(document.getElementById("numHiders").value);
+  const numObstacles = parseInt(document.getElementById("numObstacles").value);
+  const viewRadius = parseInt(document.getElementById("viewRadius").value);
+  const seekerSpeed = parseInt(document.getElementById("seekerSpeed").value);
+  const hiderSpeed = parseInt(document.getElementById("hiderSpeed").value);
+  const permeablePercent = parseInt(
+    document.getElementById("permeablePercent").value
+  );
+
+  window.currentGame = new Game(
+    numHiders,
+    numObstacles,
+    viewRadius,
+    seekerSpeed,
+    hiderSpeed,
+    permeablePercent
+  );
+  window.currentGame.start();
+};

@@ -1,16 +1,32 @@
 class Hider {
-  constructor(x, y, radius) {
+  constructor(x, y, radius, speed) {
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = "blue";
-    this.speed = 0.5;
+    this.speed = speed;
     this.changeDirection();
   }
 
   changeDirection() {
     this.direction = Math.floor(Math.random() * 4);
-    this.moveTime = (Math.floor(Math.random() * 5) + 1) * 60; // time to move in one direction (1 to 3 seconds)
+    this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed; // time to move in one direction (1 to 3 seconds)
+    console.log(`Hider changed direction to: ${this.getDirectionString()}`);
+  }
+
+  getDirectionString() {
+    switch (this.direction) {
+      case 0:
+        return "up";
+      case 1:
+        return "down";
+      case 2:
+        return "left";
+      case 3:
+        return "right";
+      default:
+        return "unknown";
+    }
   }
 
   escapeFrom(seeker) {
@@ -22,7 +38,11 @@ class Hider {
     } else {
       this.direction = dy > 0 ? 1 : 0; // move down if dy > 0, up if dy < 0
     }
-    this.moveTime = (Math.floor(Math.random() * 5) + 1) * 60; // time to move in one direction (1 to 3 seconds)
+    this.moveTime = ((Math.floor(Math.random() * 5) + 1) * 60) / this.speed; // time to move in one direction (1 to 5 seconds)
+
+    console.log(
+      `Hider escaping from seeker facing ${this.getDirectionString()}`
+    );
   }
 
   move(WIDTH, HEIGHT, obstacles) {
@@ -58,6 +78,12 @@ class Hider {
     }
 
     this.moveTime--;
+
+    console.log(
+      `Hider moved to (${this.x}, ${
+        this.y
+      }) facing ${this.getDirectionString()}`
+    );
   }
 
   canMoveTo(x, y, WIDTH, HEIGHT, obstacles) {
@@ -72,6 +98,7 @@ class Hider {
 
     for (let obstacle of obstacles) {
       if (
+        !obstacle.permeable &&
         !(
           x + this.radius < obstacle.x ||
           x - this.radius > obstacle.x + obstacle.width ||
@@ -98,6 +125,10 @@ class Hider {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 }
 
