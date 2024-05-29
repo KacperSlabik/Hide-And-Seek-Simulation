@@ -21,14 +21,35 @@
         flex-direction: row;
         gap: 20px;
       }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: center;
+      }
     </style>
   </head>
-
   <body>
     <div><canvas id="gameCanvas" width="800" height="800"></canvas></div>
 
     <div class="parameters">
       <h1>PARAMETRY GRY</h1>
+      <div>
+        <h3>Simulation</h3>
+        <label for="numSimulations">Number of Simulations:</label>
+        <input
+          type="number"
+          id="numSimulations"
+          name="numSimulations"
+          min="1"
+          max="100"
+          value="10"
+        />
+      </div>
       <div>
         <h3>Seeker</h3>
         <label for="viewRadius">View Radius:</label>
@@ -95,9 +116,13 @@
           value="50"
         />
       </div>
-      <button onclick="startGame()">Start Game</button>
+      <button id="startButton" onclick="startSimulation()">
+        Start Simulation
+      </button>
+      <button id="reloadButton" onclick="reloadPage()">Reload</button>
       <div id="timer">Time: 0s</div>
+      <table id="resultsTable"></table>
     </div>
-    <script type="module" src="game.js"></script>
+    <script type="module" src="simulation.js"></script>
   </body>
 </html>

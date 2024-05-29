@@ -15,7 +15,8 @@ class Game {
     viewRadius,
     seekerSpeed,
     hiderSpeed,
-    permeablePercent
+    permeablePercent,
+    onGameEnd
   ) {
     this.numHiders = numHiders;
     this.numObstacles = numObstacles;
@@ -27,7 +28,10 @@ class Game {
     this.hiders = [];
     this.seeker = null;
     this.gameTime = 0;
+    this.hiderTimes = [];
+    this.onGameEnd = onGameEnd;
     this.gameInterval = null;
+    this.animationFrameId = null;
     this.timerElement = document.getElementById("timer");
     this.initObstacles();
     this.initHiders();
@@ -117,13 +121,15 @@ class Game {
 
   checkCollision() {
     for (let hider of this.hiders) {
-      console.log(hider.isInsidePermeableObstacle(this.obstacles));
       if (
+        !hider.found &&
         this.seeker.collidesWith(hider) &&
         !hider.isInsidePermeableObstacle(this.obstacles)
       ) {
         hider.color = "yellow";
         hider.speed = 0;
+        hider.found = true; // Mark this hider as found
+        this.hiderTimes.push(this.gameTime);
       }
     }
   }
@@ -162,9 +168,7 @@ class Game {
 
     if (allHidersCaught) {
       clearInterval(this.gameInterval);
-      alert(`Game over! Time: ${this.gameTime}s`);
-      console.log("CHUJA A TAM KONIEC");
-      console.log(allHidersCaught);
+      this.onGameEnd(this.gameTime, this.hiderTimes);
       return;
     }
 
@@ -182,7 +186,7 @@ class Game {
 
     this.checkCollision();
 
-    requestAnimationFrame(this.gameLoop.bind(this));
+    this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
   }
 
   start() {
@@ -190,36 +194,22 @@ class Game {
       clearInterval(this.gameInterval);
     }
     this.gameTime = 0;
+    this.hiderTimes = [];
     if (this.timerElement) {
       this.timerElement.textContent = `Time: ${this.gameTime}s`;
     }
     this.gameInterval = setInterval(this.updateGameTime.bind(this), 1000);
     this.gameLoop();
   }
+
+  stop() {
+    if (this.gameInterval) {
+      clearInterval(this.gameInterval);
+    }
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+  }
 }
 
-window.startGame = function () {
-  if (window.currentGame) {
-    clearInterval(window.currentGame.gameInterval); // Clear the interval of the previous game
-    window.currentGame = null;
-  }
-
-  const numHiders = parseInt(document.getElementById("numHiders").value);
-  const numObstacles = parseInt(document.getElementById("numObstacles").value);
-  const viewRadius = parseInt(document.getElementById("viewRadius").value);
-  const seekerSpeed = parseFloat(document.getElementById("seekerSpeed").value);
-  const hiderSpeed = parseFloat(document.getElementById("hiderSpeed").value);
-  const permeablePercent = parseInt(
-    document.getElementById("permeablePercent").value
-  );
-
-  window.currentGame = new Game(
-    numHiders,
-    numObstacles,
-    viewRadius,
-    seekerSpeed,
-    hiderSpeed,
-    permeablePercent
-  );
-  window.currentGame.start();
-};
+export default Game;

@@ -3,6 +3,7 @@ import Player from "./player.js";
 export default class Hider extends Player {
   constructor(x, y, radius, speed) {
     super(x, y, radius, speed, "blue");
+    this.found = false; // Mark as not found initially
   }
 
   escapeFrom(seeker, obstacles) {
