@@ -1,66 +1,40 @@
-class Seeker {
+import Player from "./player.js";
+
+export default class Seeker extends Player {
   constructor(x, y, radius, viewRadius, speed) {
-    this.x = x;
-    this.y = y;
-    this.radius = radius;
-    this.color = "red";
-    this.speed = speed;
+    super(x, y, radius, speed, "red");
     this.viewRadius = viewRadius;
-    this.direction = Math.floor(Math.random() * 4);
-    this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed;
   }
 
-  changeDirection() {
-    this.direction = Math.floor(Math.random() * 4);
-    this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed;
-  }
-
-  getDirectionString() {
-    switch (this.direction) {
-      case 0:
-        return "up";
-      case 1:
-        return "down";
-      case 2:
-        return "left";
-      case 3:
-        return "right";
-      default:
-        return "unknown";
-    }
-  }
-
-  move(WIDTH, HEIGHT, obstacles) {
-    if (this.moveTime <= 0) {
-      this.changeDirection();
+  canMoveTo(x, y, WIDTH, HEIGHT, obstacles) {
+    if (
+      x - this.radius < 0 ||
+      x + this.radius > WIDTH ||
+      y - this.radius < 0 ||
+      y + this.radius > HEIGHT
+    ) {
+      return false;
     }
 
-    let newX = this.x;
-    let newY = this.y;
-
-    switch (this.direction) {
-      case 0: // up
-        newY -= this.speed;
-        break;
-      case 1: // down
-        newY += this.speed;
-        break;
-      case 2: // left
-        newX -= this.speed;
-        break;
-      case 3: // right
-        newX += this.speed;
-        break;
+    for (let obstacle of obstacles) {
+      if (
+        !(
+          x + this.radius < obstacle.x ||
+          x - this.radius > obstacle.x + obstacle.width ||
+          y + this.radius < obstacle.y ||
+          y - this.radius > obstacle.y + obstacle.height
+        )
+      ) {
+        if (!obstacle.permeable) {
+          return false; // Seeker cannot move through impermeable obstacles
+        } else {
+          // Seeker cannot move through permeable obstacles either
+          return false;
+        }
+      }
     }
 
-    if (this.canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles)) {
-      this.x = newX;
-      this.y = newY;
-    } else {
-      this.changeDirection();
-    }
-
-    this.moveTime--;
+    return true;
   }
 
   chase(target, WIDTH, HEIGHT, obstacles) {
@@ -199,48 +173,6 @@ class Seeker {
     return t >= 0 && t <= 1 && u >= 0 && u <= 1;
   }
 
-  canMoveTo(x, y, WIDTH, HEIGHT, obstacles) {
-    if (
-      x - this.radius < 0 ||
-      x + this.radius > WIDTH ||
-      y - this.radius < 0 ||
-      y + this.radius > HEIGHT
-    ) {
-      return false;
-    }
-
-    for (let obstacle of obstacles) {
-      if (
-        !(
-          x + this.radius < obstacle.x ||
-          x - this.radius > obstacle.x + obstacle.width ||
-          y + this.radius < obstacle.y ||
-          y - this.radius > obstacle.y + obstacle.height
-        )
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  collidesWith(other) {
-    const dx = this.x - other.x;
-    const dy = this.y - other.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < this.radius + other.radius;
-  }
-
-  getDistanceTo(obstacle) {
-    const obstacleCenterX = obstacle.x + obstacle.width / 2;
-    const obstacleCenterY = obstacle.y + obstacle.height / 2;
-    return Math.sqrt(
-      Math.pow(obstacleCenterX - this.x, 2) +
-        Math.pow(obstacleCenterY - this.y, 2)
-    );
-  }
-
   isObstacleBlocking(x, y, obstacles) {
     for (let obstacle of obstacles) {
       if (this.lineIntersectsRectangle(this.x, this.y, x, y, obstacle)) {
@@ -290,17 +222,7 @@ class Seeker {
   }
 
   draw(ctx, obstacles) {
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    this.drawViewRadius(ctx, obstacles);
+    super.draw(ctx); // Draw the seeker
+    this.drawViewRadius(ctx, obstacles); // Draw the view radius
   }
 }
-
-export default Seeker;

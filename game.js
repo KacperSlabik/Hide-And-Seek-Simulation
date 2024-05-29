@@ -163,6 +163,8 @@ class Game {
     if (allHidersCaught) {
       clearInterval(this.gameInterval);
       alert(`Game over! Time: ${this.gameTime}s`);
+      console.log("CHUJA A TAM KONIEC");
+      console.log(allHidersCaught);
       return;
     }
 
