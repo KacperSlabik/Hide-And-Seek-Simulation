@@ -9,22 +9,12 @@ const WIDTH = 800;
 const HEIGHT = 800;
 
 class Game {
-  constructor(
-    numHiders,
-    numObstacles,
-    viewRadius,
-    seekerSpeed,
-    hiderSpeed,
-    permeablePercent,
-    onGameEnd
-  ) {
+  constructor(numHiders, viewRadius, seekerSpeed, hiderSpeed, onGameEnd) {
     this.numHiders = numHiders;
-    this.numObstacles = numObstacles;
     this.viewRadius = viewRadius;
     this.seekerSpeed = seekerSpeed;
     this.hiderSpeed = hiderSpeed;
-    this.permeablePercent = permeablePercent;
-    this.obstacles = [];
+    this.obstacles = []; // Initialize as an array
     this.hiders = [];
     this.seeker = null;
     this.gameTime = 0;
@@ -33,28 +23,12 @@ class Game {
     this.gameInterval = null;
     this.animationFrameId = null;
     this.timerElement = document.getElementById("timer");
-    this.initObstacles();
-    this.initHiders();
     this.initSeeker();
   }
 
-  initObstacles() {
-    let i = 0;
-    while (i < this.numObstacles) {
-      const width = Math.floor(Math.random() * 120) + 30;
-      const height = Math.floor(Math.random() * 120) + 30;
-      const x = Math.floor(Math.random() * (WIDTH - width - 40)) + 20;
-      const y = Math.floor(Math.random() * (HEIGHT - height - 40)) + 20;
-      const permeable = Math.random() < this.permeablePercent / 100;
-      const newObstacle = new Obstacle(x, y, width, height, permeable);
-
-      if (
-        !this.obstacles.some((obstacle) => obstacle.collidesWith(newObstacle))
-      ) {
-        this.obstacles.push(newObstacle);
-        i++;
-      }
-    }
+  setObstacles(obstacles) {
+    this.obstacles = obstacles;
+    this.initHiders(); // Initialize hiders after setting obstacles
   }
 
   initHiders() {
@@ -83,9 +57,11 @@ class Game {
           10;
 
         const newHider = new Hider(x, y, 10, this.hiderSpeed);
-        validPosition = this.isPositionValid(newHider);
+        if (this.isPositionValid(newHider)) {
+          validPosition = true;
+          this.hiders.push(newHider);
+        }
       }
-      this.hiders.push(new Hider(x, y, 10, this.hiderSpeed));
     }
   }
 

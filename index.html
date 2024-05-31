@@ -31,10 +31,26 @@
         padding: 8px;
         text-align: center;
       }
+      #resultsChart {
+        display: flex;
+        max-width: 800px;
+        margin-top: 20px;
+      }
+      #hiderChart {
+        display: flex;
+        max-width: 800px;
+        margin-top: 20px;
+      }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="simulation.js"></script>
   </head>
   <body>
-    <div><canvas id="gameCanvas" width="800" height="800"></canvas></div>
+    <div>
+      <canvas id="gameCanvas" width="800" height="800"></canvas>
+      <canvas id="resultsChart"></canvas>
+      <canvas id="hiderChart"></canvas>
+    </div>
 
     <div class="parameters">
       <h1>PARAMETRY GRY</h1>
@@ -93,6 +109,7 @@
           max="10"
           value="1"
         />
+        <br />
       </div>
       <div>
         <h3>Obstacles</h3>
@@ -121,8 +138,9 @@
       </button>
       <button id="reloadButton" onclick="reloadPage()">Reload</button>
       <div id="timer">Time: 0s</div>
+      <div id="overallTimer">Overall Time: 0s</div>
+      <div id="currentSimulation">Current Simulation: 0</div>
       <table id="resultsTable"></table>
     </div>
-    <script type="module" src="simulation.js"></script>
   </body>
 </html>
