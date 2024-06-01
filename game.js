@@ -9,17 +9,28 @@ const WIDTH = 800;
 const HEIGHT = 800;
 
 class Game {
-  constructor(numHiders, viewRadius, seekerSpeed, hiderSpeed, onGameEnd) {
+  constructor(
+    numHiders,
+    viewRadius,
+    seekerSpeed,
+    hiderSpeed,
+    simulationSpeed,
+    onGameEnd,
+    updateSimulationTime
+  ) {
     this.numHiders = numHiders;
     this.viewRadius = viewRadius;
-    this.seekerSpeed = seekerSpeed;
-    this.hiderSpeed = hiderSpeed;
-    this.obstacles = []; // Initialize as an array
+    this.seekerSpeed = seekerSpeed * simulationSpeed;
+    this.hiderSpeed = hiderSpeed * simulationSpeed;
+    this.simulationSpeed = simulationSpeed;
+    this.obstacles = [];
     this.hiders = [];
     this.seeker = null;
     this.gameTime = 0;
+    this.simulationGameTime = 0; // Initialize once, will not reset between simulations
     this.hiderTimes = [];
     this.onGameEnd = onGameEnd;
+    this.updateSimulationTime = updateSimulationTime;
     this.gameInterval = null;
     this.animationFrameId = null;
     this.timerElement = document.getElementById("timer");
@@ -102,10 +113,10 @@ class Game {
         this.seeker.collidesWith(hider) &&
         !hider.isInsidePermeableObstacle(this.obstacles)
       ) {
-        hider.color = "yellow";
+        hider.color = "rgba(0, 0, 255, 0.2)";
         hider.speed = 0;
         hider.found = true; // Mark this hider as found
-        this.hiderTimes.push(this.gameTime);
+        this.hiderTimes.push(Math.floor(this.gameTime * 100) / 100);
       }
     }
   }
@@ -119,9 +130,9 @@ class Game {
   }
 
   updateGameTime() {
-    this.gameTime += 1;
+    this.gameTime += 1 / this.simulationSpeed;
     if (this.timerElement) {
-      this.timerElement.textContent = `Time: ${this.gameTime}s`;
+      this.timerElement.textContent = `Time: ${Math.floor(this.gameTime)}s`;
     }
   }
 
@@ -144,7 +155,7 @@ class Game {
 
     if (allHidersCaught) {
       clearInterval(this.gameInterval);
-      this.onGameEnd(this.gameTime, this.hiderTimes);
+      this.onGameEnd(Math.floor(this.gameTime), this.hiderTimes);
       return;
     }
 
@@ -174,7 +185,10 @@ class Game {
     if (this.timerElement) {
       this.timerElement.textContent = `Time: ${this.gameTime}s`;
     }
-    this.gameInterval = setInterval(this.updateGameTime.bind(this), 1000);
+    this.gameInterval = setInterval(() => {
+      this.updateGameTime();
+      this.updateSimulationTime();
+    }, 1000 / this.simulationSpeed);
     this.gameLoop();
   }
 

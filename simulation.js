@@ -19,6 +19,9 @@ function startSimulation() {
   const viewRadius = parseInt(document.getElementById("viewRadius").value);
   const seekerSpeed = parseInt(document.getElementById("seekerSpeed").value);
   const hiderSpeed = parseInt(document.getElementById("hiderSpeed").value);
+  const simulationSpeed = parseInt(
+    document.getElementById("simulationSpeed").value
+  );
   const permeablePercent = parseInt(
     document.getElementById("permeablePercent").value
   );
@@ -31,6 +34,7 @@ function startSimulation() {
     viewRadius,
     seekerSpeed,
     hiderSpeed,
+    simulationSpeed,
     obstacles,
     () => {
       startButton.disabled = false;
@@ -78,6 +82,7 @@ class Simulation {
     viewRadius,
     seekerSpeed,
     hiderSpeed,
+    simulationSpeed,
     obstacles,
     onComplete
   ) {
@@ -86,6 +91,7 @@ class Simulation {
     this.viewRadius = viewRadius;
     this.seekerSpeed = seekerSpeed;
     this.hiderSpeed = hiderSpeed;
+    this.simulationSpeed = simulationSpeed; // Store simulation speed
     this.obstacles = obstacles;
     this.currentSimulation = 0;
     this.results = [];
@@ -93,6 +99,7 @@ class Simulation {
     this.onComplete = onComplete;
     this.startTime = null;
     this.overallInterval = null;
+    this.simulationGameTime = 0; // Initialize once, will not reset between simulations
   }
 
   startSimulation() {
@@ -112,6 +119,12 @@ class Simulation {
     const timerElement = document.getElementById("timer");
     if (timerElement) {
       timerElement.textContent = `Time: 0s`;
+    }
+    const secondTimerElement = document.getElementById("secondTimer");
+    if (secondTimerElement) {
+      secondTimerElement.textContent = `Simulation Time: ${Math.floor(
+        this.simulationGameTime
+      )}s`;
     }
     const currentSimulationElement =
       document.getElementById("currentSimulation");
@@ -155,6 +168,16 @@ class Simulation {
     }
   }
 
+  updateSimulationTime() {
+    this.simulationGameTime += 1 / this.simulationSpeed;
+    const secondTimerElement = document.getElementById("secondTimer");
+    if (secondTimerElement) {
+      secondTimerElement.textContent = `Simulation Time: ${Math.floor(
+        this.simulationGameTime * this.simulationSpeed
+      )}s`;
+    }
+  }
+
   runNextSimulation() {
     if (this.currentSimulation >= this.numSimulations) {
       this.displayResults();
@@ -177,7 +200,9 @@ class Simulation {
       this.viewRadius,
       this.seekerSpeed,
       this.hiderSpeed,
-      this.handleGameEnd.bind(this)
+      this.simulationSpeed,
+      this.handleGameEnd.bind(this),
+      this.updateSimulationTime.bind(this)
     );
     this.currentGame.setObstacles(this.obstacles);
     this.currentGame.start();
@@ -187,11 +212,11 @@ class Simulation {
     this.results.push({
       simulationNumber: this.currentSimulation,
       gameTime: gameTime,
-      hiderTimes: hiderTimes,
+      hiderTimes: hiderTimes.map((time) => Math.round(time * 100) / 100),
     });
 
     // Short delay before the next simulation
-    setTimeout(() => this.runNextSimulation(), 100);
+    this.runNextSimulation();
   }
 
   displayResults() {
