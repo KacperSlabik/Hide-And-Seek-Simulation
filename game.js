@@ -1,6 +1,7 @@
 import Obstacle from "./obstacle.js";
 import Hider from "./hider.js";
 import Seeker from "./seeker.js";
+import Point from "./point.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -14,6 +15,8 @@ class Game {
     viewRadius,
     seekerSpeed,
     hiderSpeed,
+    hiderViewRadius,
+    numPoints,
     simulationSpeed,
     onGameEnd,
     updateSimulationTime
@@ -22,13 +25,17 @@ class Game {
     this.viewRadius = viewRadius;
     this.seekerSpeed = seekerSpeed * simulationSpeed;
     this.hiderSpeed = hiderSpeed * simulationSpeed;
+    this.hiderViewRadius = hiderViewRadius;
+    this.numPoints = numPoints;
     this.simulationSpeed = simulationSpeed;
     this.obstacles = [];
     this.hiders = [];
+    this.points = [];
     this.seeker = null;
     this.gameTime = 0;
-    this.simulationGameTime = 0; // Initialize once, will not reset between simulations
+    this.simulationGameTime = 0;
     this.hiderTimes = [];
+    this.pointsCollected = 0; // Track collected points
     this.onGameEnd = onGameEnd;
     this.updateSimulationTime = updateSimulationTime;
     this.gameInterval = null;
@@ -39,7 +46,8 @@ class Game {
 
   setObstacles(obstacles) {
     this.obstacles = obstacles;
-    this.initHiders(); // Initialize hiders after setting obstacles
+    this.initHiders();
+    this.generatePoints(this.numPoints);
   }
 
   initHiders() {
@@ -67,7 +75,13 @@ class Game {
           segmentY * segmentHeight +
           10;
 
-        const newHider = new Hider(x, y, 10, this.hiderSpeed);
+        const newHider = new Hider(
+          x,
+          y,
+          10,
+          this.hiderSpeed,
+          this.hiderViewRadius
+        );
         if (this.isPositionValid(newHider)) {
           validPosition = true;
           this.hiders.push(newHider);
@@ -76,26 +90,43 @@ class Game {
     }
   }
 
-  isPositionValid(newHider) {
-    if (this.hiders.some((hider) => hider.collidesWith(newHider))) {
-      return false;
-    }
+  generatePoints(numPoints) {
+    for (let i = 0; i < numPoints; i++) {
+      let x, y;
+      let validPosition = false;
+      while (!validPosition) {
+        x = Math.floor(Math.random() * (WIDTH - 10 - 5)) + 5;
+        y = Math.floor(Math.random() * (HEIGHT - 10 - 5)) + 5;
 
-    if (this.collidesWithObstacle(newHider)) {
+        const newPoint = new Point(x, y);
+        if (this.isPositionValid(newPoint)) {
+          validPosition = true;
+          this.points.push(newPoint);
+        }
+      }
+    }
+  }
+
+  isPositionValid(newItem) {
+    if (
+      this.hiders.some((hider) => hider.collidesWith(newItem)) ||
+      this.points.some((point) => point.collidesWith(newItem)) ||
+      this.collidesWithObstacle(newItem)
+    ) {
       return false;
     }
 
     return true;
   }
 
-  collidesWithObstacle(newHider) {
+  collidesWithObstacle(newItem) {
     return this.obstacles.some(
       (obstacle) =>
         !(
-          newHider.x + newHider.radius < obstacle.x ||
-          newHider.x - newHider.radius > obstacle.x + obstacle.width ||
-          newHider.y + newHider.radius < obstacle.y ||
-          newHider.y - newHider.radius > obstacle.y + obstacle.height
+          newItem.x + newItem.radius < obstacle.x ||
+          newItem.x - newItem.radius > obstacle.x + obstacle.width ||
+          newItem.y + newItem.radius < obstacle.y ||
+          newItem.y - newItem.radius > obstacle.y + obstacle.height
         )
     );
   }
@@ -115,7 +146,7 @@ class Game {
       ) {
         hider.color = "rgba(0, 0, 255, 0.2)";
         hider.speed = 0;
-        hider.found = true; // Mark this hider as found
+        hider.found = true;
         this.hiderTimes.push(Math.floor(this.gameTime * 100) / 100);
       }
     }
@@ -143,19 +174,52 @@ class Game {
       obstacle.draw(ctx);
     }
 
+    for (let point of this.points) {
+      point.draw(ctx);
+    }
+
     let allHidersCaught = true;
     for (let hider of this.hiders) {
       if (hider.speed > 0) {
         allHidersCaught = false;
         this.checkVisibility(this.seeker, hider, this.obstacles);
       }
-      hider.move(WIDTH, HEIGHT, this.obstacles);
+
+      const visiblePoint = this.points.find((point) =>
+        hider.canSee(point, this.obstacles)
+      );
+      if (visiblePoint) {
+        hider.moveTowardsPoint(visiblePoint, WIDTH, HEIGHT, this.obstacles);
+        if (hider.hasCollectedPoint(visiblePoint)) {
+          this.points = this.points.filter((point) => point !== visiblePoint);
+          this.pointsCollected++; // Increment points collected
+        }
+      } else {
+        hider.move(WIDTH, HEIGHT, this.obstacles);
+      }
+
       hider.draw(ctx, this.obstacles);
     }
 
     if (allHidersCaught) {
       clearInterval(this.gameInterval);
-      this.onGameEnd(Math.floor(this.gameTime), this.hiderTimes);
+      this.onGameEnd(
+        Math.floor(this.gameTime),
+        this.hiderTimes,
+        this.pointsCollected, // Pass points collected
+        false // Pass win status as false
+      );
+      return;
+    }
+
+    if (this.points.length === 0) {
+      clearInterval(this.gameInterval);
+      this.onGameEnd(
+        Math.floor(this.gameTime),
+        this.hiderTimes,
+        this.pointsCollected, // Pass points collected
+        true // Pass win status as true
+      );
       return;
     }
 
@@ -182,6 +246,7 @@ class Game {
     }
     this.gameTime = 0;
     this.hiderTimes = [];
+    this.pointsCollected = 0; // Reset collected points
     if (this.timerElement) {
       this.timerElement.textContent = `Time: ${this.gameTime}s`;
     }

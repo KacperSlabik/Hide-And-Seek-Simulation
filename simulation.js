@@ -19,6 +19,10 @@ function startSimulation() {
   const viewRadius = parseInt(document.getElementById("viewRadius").value);
   const seekerSpeed = parseInt(document.getElementById("seekerSpeed").value);
   const hiderSpeed = parseInt(document.getElementById("hiderSpeed").value);
+  const hiderViewRadius = parseInt(
+    document.getElementById("hiderViewRadius").value
+  );
+  const numPoints = parseInt(document.getElementById("numPoints").value); // Add number of points
   const simulationSpeed = parseInt(
     document.getElementById("simulationSpeed").value
   );
@@ -34,6 +38,8 @@ function startSimulation() {
     viewRadius,
     seekerSpeed,
     hiderSpeed,
+    hiderViewRadius, // Pass the hider's view radius
+    numPoints, // Pass the number of points
     simulationSpeed,
     obstacles,
     () => {
@@ -82,6 +88,8 @@ class Simulation {
     viewRadius,
     seekerSpeed,
     hiderSpeed,
+    hiderViewRadius,
+    numPoints,
     simulationSpeed,
     obstacles,
     onComplete
@@ -91,7 +99,9 @@ class Simulation {
     this.viewRadius = viewRadius;
     this.seekerSpeed = seekerSpeed;
     this.hiderSpeed = hiderSpeed;
-    this.simulationSpeed = simulationSpeed; // Store simulation speed
+    this.hiderViewRadius = hiderViewRadius;
+    this.numPoints = numPoints;
+    this.simulationSpeed = simulationSpeed;
     this.obstacles = obstacles;
     this.currentSimulation = 0;
     this.results = [];
@@ -154,6 +164,8 @@ class Simulation {
         <th>Simulation #</th>
         <th>Game Time</th>
         <th>Hider Times</th>
+        <th>Points Collected</th>
+        <th>Win Status</th>
       </tr>
     `;
   }
@@ -200,6 +212,8 @@ class Simulation {
       this.viewRadius,
       this.seekerSpeed,
       this.hiderSpeed,
+      this.hiderViewRadius, // Pass the hider's view radius
+      this.numPoints, // Pass the number of points
       this.simulationSpeed,
       this.handleGameEnd.bind(this),
       this.updateSimulationTime.bind(this)
@@ -208,11 +222,13 @@ class Simulation {
     this.currentGame.start();
   }
 
-  handleGameEnd(gameTime, hiderTimes) {
+  handleGameEnd(gameTime, hiderTimes, pointsCollected, winStatus) {
     this.results.push({
       simulationNumber: this.currentSimulation,
       gameTime: gameTime,
       hiderTimes: hiderTimes.map((time) => Math.round(time * 100) / 100),
+      pointsCollected: pointsCollected,
+      winStatus: winStatus ? "Yes" : "No",
     });
 
     // Short delay before the next simulation
@@ -231,6 +247,8 @@ class Simulation {
           <td>${result.simulationNumber}</td>
           <td>${result.gameTime}</td>
           <td>${hiderTimes}</td>
+          <td>${result.pointsCollected}</td>
+          <td>${result.winStatus}</td>
         </tr>
       `;
 
@@ -240,7 +258,7 @@ class Simulation {
     const averageTime = totalTime / this.results.length;
     resultsTable.innerHTML += `
       <tr>
-        <td colspan="2">Average Game Time</td>
+        <td colspan="4">Average Game Time</td>
         <td>${averageTime.toFixed(2)}</td>
       </tr>
     `;

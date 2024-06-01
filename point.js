@@ -4,11 +4,18 @@ export default class Point {
     this.y = y;
     this.radius = 5;
     this.color = "yellow";
+    this.width = this.radius * 2;
+    this.height = this.radius * 2;
   }
 
   draw(ctx) {
     ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 
   collidesWith(other) {
