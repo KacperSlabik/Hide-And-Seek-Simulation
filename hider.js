@@ -23,9 +23,9 @@ export default class Hider extends Player {
       }
       this.moveTime = ((Math.floor(Math.random() * 5) + 1) * 60) / this.speed; // time to move in one direction (1 to 5 seconds)
 
-      console.log(
-        `Hider escaping from seeker towards nearest permeable obstacle facing ${this.getDirectionString()}`
-      );
+      // console.log(
+      //   `Hider escaping from seeker towards nearest permeable obstacle facing ${this.getDirectionString()}`
+      // );
     } else {
       // Move directly away from seeker if no suitable permeable obstacle is found
       const dx = this.x - seeker.x;
@@ -38,9 +38,9 @@ export default class Hider extends Player {
       }
       this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed; // time to move in one direction (1 to 3 seconds)
 
-      console.log(
-        `Hider escaping from seeker facing ${this.getDirectionString()}`
-      );
+      // console.log(
+      //   `Hider escaping from seeker facing ${this.getDirectionString()}`
+      // );
     }
   }
 
@@ -108,13 +108,21 @@ export default class Hider extends Player {
 
     const dx = point.x - this.x;
     const dy = point.y - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (Math.abs(dx) > Math.abs(dy)) {
-      newX += dx > 0 ? this.speed : -this.speed;
-      this.direction = dx > 0 ? 3 : 2; // Right or left
+    if (distance < this.speed) {
+      // Jeśli jesteśmy bardzo blisko punktu, przejdź bezpośrednio do niego
+      newX = point.x;
+      newY = point.y;
     } else {
-      newY += dy > 0 ? this.speed : -this.speed;
-      this.direction = dy > 0 ? 1 : 0; // Down or up
+      // Normalny ruch w kierunku punktu
+      if (Math.abs(dx) > Math.abs(dy)) {
+        newX += dx > 0 ? this.speed : -this.speed;
+        this.direction = dx > 0 ? 3 : 2; // Right or left
+      } else {
+        newY += dy > 0 ? this.speed : -this.speed;
+        this.direction = dy > 0 ? 1 : 0; // Down or up
+      }
     }
 
     if (!this.canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles)) {

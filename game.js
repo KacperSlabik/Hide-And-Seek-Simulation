@@ -144,6 +144,7 @@ class Game {
         this.seeker.collidesWith(hider) &&
         !hider.isInsidePermeableObstacle(this.obstacles)
       ) {
+        console.log(`Hider found at (${hider.x}, ${hider.y})`);
         hider.color = "rgba(0, 0, 255, 0.2)";
         hider.speed = 0;
         hider.found = true;
@@ -202,24 +203,12 @@ class Game {
     }
 
     if (allHidersCaught) {
-      clearInterval(this.gameInterval);
-      this.onGameEnd(
-        Math.floor(this.gameTime),
-        this.hiderTimes,
-        this.pointsCollected, // Pass points collected
-        false // Pass win status as false
-      );
+      this.endGame(false);
       return;
     }
 
     if (this.points.length === 0) {
-      clearInterval(this.gameInterval);
-      this.onGameEnd(
-        Math.floor(this.gameTime),
-        this.hiderTimes,
-        this.pointsCollected, // Pass points collected
-        true // Pass win status as true
-      );
+      this.endGame(true);
       return;
     }
 
@@ -238,6 +227,28 @@ class Game {
     this.checkCollision();
 
     this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+  }
+
+  endGame(winStatus) {
+    clearInterval(this.gameInterval);
+    cancelAnimationFrame(this.animationFrameId);
+    this.onGameEnd(
+      Math.floor(this.gameTime),
+      this.hiderTimes,
+      this.pointsCollected,
+      winStatus
+    );
+  }
+
+  endGame(winStatus) {
+    clearInterval(this.gameInterval);
+    cancelAnimationFrame(this.animationFrameId);
+    this.onGameEnd(
+      Math.floor(this.gameTime),
+      this.hiderTimes,
+      this.pointsCollected,
+      winStatus
+    );
   }
 
   start() {

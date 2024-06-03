@@ -18,6 +18,7 @@ export default class Seeker extends Player {
 
     for (let obstacle of obstacles) {
       if (
+        !obstacle.permeable &&
         !(
           x + this.radius < obstacle.x ||
           x - this.radius > obstacle.x + obstacle.width ||
@@ -25,12 +26,7 @@ export default class Seeker extends Player {
           y - this.radius > obstacle.y + obstacle.height
         )
       ) {
-        if (!obstacle.permeable) {
-          return false; // Seeker cannot move through impermeable obstacles
-        } else {
-          // Seeker cannot move through permeable obstacles either
-          return false;
-        }
+        return false;
       }
     }
 
@@ -47,13 +43,21 @@ export default class Seeker extends Player {
 
     const dx = target.x - this.x;
     const dy = target.y - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (Math.abs(dx) > Math.abs(dy)) {
-      newX += dx > 0 ? this.speed : -this.speed;
-      this.direction = dx > 0 ? 3 : 2; // Right or left
+    if (distance < this.speed) {
+      // Jeśli jesteśmy bardzo blisko celu, przejdź bezpośrednio do niego
+      newX = target.x;
+      newY = target.y;
     } else {
-      newY += dy > 0 ? this.speed : -this.speed;
-      this.direction = dy > 0 ? 1 : 0; // Down or up
+      // Normalny ruch w kierunku celu
+      if (Math.abs(dx) > Math.abs(dy)) {
+        newX += dx > 0 ? this.speed : -this.speed;
+        this.direction = dx > 0 ? 3 : 2; // Right or left
+      } else {
+        newY += dy > 0 ? this.speed : -this.speed;
+        this.direction = dy > 0 ? 1 : 0; // Down or up
+      }
     }
 
     if (!this.canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles)) {
