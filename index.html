@@ -32,11 +32,9 @@
         padding: 8px;
         text-align: center;
       }
-      #resultsChart {
-        max-width: 800px;
-        margin-top: 20px;
-      }
+      #resultsChart,
       #hiderChart {
+        display: flex;
         max-width: 800px;
         margin-top: 20px;
       }
@@ -142,25 +140,20 @@
       </div>
       <div>
         <h3>Obstacles</h3>
-        <label for="numObstacles">Number of Obstacles:</label>
-        <input
-          type="number"
-          id="numObstacles"
-          name="numObstacles"
-          min="1"
-          max="50"
-          value="15"
-        />
+        <label>
+          <input type="radio" name="obstacleSet" value="set1" checked /> 20
+          impermeable obstacles
+        </label>
         <br />
-        <label for="permeablePercent">Permeable Obstacles (%):</label>
-        <input
-          type="number"
-          id="permeablePercent"
-          name="permeablePercent"
-          min="0"
-          max="100"
-          value="50"
-        />
+        <label>
+          <input type="radio" name="obstacleSet" value="set2" /> 10 impermeable
+          obstacles | 10 permeable obstacles
+        </label>
+        <br />
+        <label>
+          <input type="radio" name="obstacleSet" value="set3" /> 20 permeable
+          obstacles
+        </label>
       </div>
       <button id="startButton">Start Simulation</button>
       <button id="reloadButton">Reload</button>

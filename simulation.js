@@ -7,30 +7,41 @@ const HEIGHT = 800;
 
 let simulation;
 
-function startSimulation() {
+async function fetchObstacleSets() {
+  const response = await fetch("obstacles.json");
+  const obstacleSets = await response.json();
+  return obstacleSets;
+}
+
+async function startSimulation() {
   const startButton = document.getElementById("startButton");
   startButton.disabled = true;
+
+  const obstacleSets = await fetchObstacleSets();
 
   const numSimulations = parseInt(
     document.getElementById("numSimulations").value
   );
   const numHiders = parseInt(document.getElementById("numHiders").value);
-  const numObstacles = parseInt(document.getElementById("numObstacles").value);
   const viewRadius = parseInt(document.getElementById("viewRadius").value);
   const seekerSpeed = parseInt(document.getElementById("seekerSpeed").value);
   const hiderSpeed = parseInt(document.getElementById("hiderSpeed").value);
   const hiderViewRadius = parseInt(
     document.getElementById("hiderViewRadius").value
   );
-  const numPoints = parseInt(document.getElementById("numPoints").value); // Add number of points
+  const numPoints = parseInt(document.getElementById("numPoints").value);
   const simulationSpeed = parseInt(
     document.getElementById("simulationSpeed").value
   );
-  const permeablePercent = parseInt(
-    document.getElementById("permeablePercent").value
-  );
 
-  const obstacles = generateObstacles(numObstacles, permeablePercent);
+  const selectedSet = document.querySelector(
+    'input[name="obstacleSet"]:checked'
+  ).value;
+  const obstacleData = obstacleSets[selectedSet];
+  const obstacles = obstacleData.map(
+    (data) =>
+      new Obstacle(data.x, data.y, data.width, data.height, data.permeable)
+  );
 
   simulation = new Simulation(
     numSimulations,
@@ -38,8 +49,8 @@ function startSimulation() {
     viewRadius,
     seekerSpeed,
     hiderSpeed,
-    hiderViewRadius, // Pass the hider's view radius
-    numPoints, // Pass the number of points
+    hiderViewRadius,
+    numPoints,
     simulationSpeed,
     obstacles,
     () => {
@@ -55,25 +66,6 @@ function startSimulation() {
 
 function reloadPage() {
   window.location.reload();
-}
-
-function generateObstacles(numObstacles, permeablePercent) {
-  const obstacles = [];
-  let i = 0;
-  while (i < numObstacles) {
-    const width = Math.floor(Math.random() * 120) + 30;
-    const height = Math.floor(Math.random() * 120) + 30;
-    const x = Math.floor(Math.random() * (WIDTH - width - 40)) + 20;
-    const y = Math.floor(Math.random() * (HEIGHT - height - 40)) + 20;
-    const permeable = Math.random() < permeablePercent / 100;
-    const newObstacle = new Obstacle(x, y, width, height, permeable);
-
-    if (!obstacles.some((obstacle) => obstacle.collidesWith(newObstacle))) {
-      obstacles.push(newObstacle);
-      i++;
-    }
-  }
-  return obstacles;
 }
 
 document
@@ -109,7 +101,7 @@ class Simulation {
     this.onComplete = onComplete;
     this.startTime = null;
     this.overallInterval = null;
-    this.simulationGameTime = 0; // Initialize once, will not reset between simulations
+    this.simulationGameTime = 0;
   }
 
   startSimulation() {
@@ -232,7 +224,7 @@ class Simulation {
     });
 
     // Short delay before the next simulation
-    this.runNextSimulation();
+    setTimeout(() => this.runNextSimulation(), 1000);
   }
 
   displayResults() {

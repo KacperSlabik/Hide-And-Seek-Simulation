@@ -8,6 +8,8 @@ const ctx = canvas.getContext("2d");
 
 const WIDTH = 800;
 const HEIGHT = 800;
+const MIN_DISTANCE_FROM_EDGE = 10;
+const MIN_DISTANCE_FROM_OBSTACLE = 10;
 
 class Game {
   constructor(
@@ -48,6 +50,7 @@ class Game {
     this.obstacles = obstacles;
     this.initHiders();
     this.generatePoints(this.numPoints);
+    console.log(obstacles);
   }
 
   initHiders() {
@@ -95,8 +98,14 @@ class Game {
       let x, y;
       let validPosition = false;
       while (!validPosition) {
-        x = Math.floor(Math.random() * (WIDTH - 10 - 5)) + 5;
-        y = Math.floor(Math.random() * (HEIGHT - 10 - 5)) + 5;
+        x =
+          Math.floor(
+            Math.random() * (WIDTH - MIN_DISTANCE_FROM_EDGE * 2 - 10)
+          ) + MIN_DISTANCE_FROM_EDGE;
+        y =
+          Math.floor(
+            Math.random() * (HEIGHT - MIN_DISTANCE_FROM_EDGE * 2 - 10)
+          ) + MIN_DISTANCE_FROM_EDGE;
 
         const newPoint = new Point(x, y);
         if (this.isPositionValid(newPoint)) {
@@ -115,7 +124,6 @@ class Game {
     ) {
       return false;
     }
-
     return true;
   }
 
@@ -123,10 +131,14 @@ class Game {
     return this.obstacles.some(
       (obstacle) =>
         !(
-          newItem.x + newItem.radius < obstacle.x ||
-          newItem.x - newItem.radius > obstacle.x + obstacle.width ||
-          newItem.y + newItem.radius < obstacle.y ||
-          newItem.y - newItem.radius > obstacle.y + obstacle.height
+          newItem.x + newItem.radius + MIN_DISTANCE_FROM_OBSTACLE <
+            obstacle.x ||
+          newItem.x - newItem.radius - MIN_DISTANCE_FROM_OBSTACLE >
+            obstacle.x + obstacle.width ||
+          newItem.y + newItem.radius + MIN_DISTANCE_FROM_OBSTACLE <
+            obstacle.y ||
+          newItem.y - newItem.radius - MIN_DISTANCE_FROM_OBSTACLE >
+            obstacle.y + obstacle.height
         )
     );
   }
@@ -227,17 +239,6 @@ class Game {
     this.checkCollision();
 
     this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
-  }
-
-  endGame(winStatus) {
-    clearInterval(this.gameInterval);
-    cancelAnimationFrame(this.animationFrameId);
-    this.onGameEnd(
-      Math.floor(this.gameTime),
-      this.hiderTimes,
-      this.pointsCollected,
-      winStatus
-    );
   }
 
   endGame(winStatus) {
