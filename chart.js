@@ -1,9 +1,11 @@
 class SimulationChart {
-  constructor(resultsChartId, hiderChartId) {
+  constructor(resultsChartId, pointsChartId, hiderTimesChartId) {
     this.resultsChartId = resultsChartId;
-    this.hiderChartId = hiderChartId;
+    this.pointsChartId = pointsChartId;
+    this.hiderTimesChartId = hiderTimesChartId;
     this.resultsChart = null;
-    this.hiderChart = null;
+    this.pointsChart = null;
+    this.hiderTimesChart = null;
   }
 
   generateComparisonChart(simulations) {
@@ -41,6 +43,99 @@ class SimulationChart {
             title: {
               display: true,
               text: "Game Time",
+            },
+          },
+        },
+      },
+    });
+  }
+
+  generatePointsChart(pointsResults) {
+    const datasets = pointsResults.map((pointsResult, index) => ({
+      label: `Simulation Set ${index + 1}`,
+      data: pointsResult.map((result) => ({
+        x: result.simulationNumber,
+        y: result.pointsCollected,
+      })),
+      fill: false,
+      borderColor: this.getRandomColor(),
+      tension: 0.1,
+    }));
+
+    const ctx = document.getElementById(this.pointsChartId).getContext("2d");
+    if (this.pointsChart) {
+      this.pointsChart.destroy();
+    }
+    this.pointsChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        datasets: datasets,
+      },
+      options: {
+        scales: {
+          x: {
+            type: "linear",
+            position: "bottom",
+            title: {
+              display: true,
+              text: "Simulation Number",
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: "Points Collected",
+            },
+          },
+        },
+      },
+    });
+  }
+
+  generateHiderTimesChart(hiderTimesResults) {
+    const datasets = hiderTimesResults.map((hiderTimesResult, index) => ({
+      label: `Simulation Set ${index + 1}`,
+      data: hiderTimesResult.flatMap((result) =>
+        result.hiderTimes.map((time) => ({
+          x: time, // The time each hider was found
+          y: result.simulationNumber, // The simulation number
+        }))
+      ),
+      fill: false,
+      borderColor: this.getRandomColor(),
+      tension: 0.1,
+    }));
+
+    const ctx = document
+      .getElementById(this.hiderTimesChartId)
+      .getContext("2d");
+    if (this.hiderTimesChart) {
+      this.hiderTimesChart.destroy();
+    }
+    this.hiderTimesChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        datasets: datasets,
+      },
+      options: {
+        scales: {
+          x: {
+            type: "linear",
+            position: "bottom",
+            title: {
+              display: true,
+              text: "Time Found (s)",
+            },
+            ticks: {
+              callback: function (value) {
+                return `${value}s`;
+              },
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: "Simulation Number",
             },
           },
         },

@@ -6,6 +6,9 @@ const WIDTH = 800;
 const HEIGHT = 800;
 
 let simulations = [];
+let pointsResults = [];
+let hiderTimesResults = [];
+let simulationParams = [];
 
 async function fetchObstacleSets() {
   const response = await fetch("obstacles.json");
@@ -43,6 +46,18 @@ async function startSimulation() {
       new Obstacle(data.x, data.y, data.width, data.height, data.permeable)
   );
 
+  simulationParams.push({
+    numSimulations,
+    numHiders,
+    viewRadius,
+    seekerSpeed,
+    hiderSpeed,
+    hiderViewRadius,
+    numPoints,
+    simulationSpeed,
+    selectedSet,
+  });
+
   const simulation = new Simulation(
     numSimulations,
     numHiders,
@@ -55,6 +70,8 @@ async function startSimulation() {
     obstacles,
     () => {
       simulations.push(simulation.results);
+      pointsResults.push(simulation.pointsResults);
+      hiderTimesResults.push(simulation.hiderTimesResults);
       startButton.disabled = false;
       const continueButton = document.getElementById("continueButton");
       continueButton.style.display = "inline-block";
@@ -72,8 +89,15 @@ function continueSimulation() {
 }
 
 function finishSimulations() {
-  const chart = new SimulationChart("resultsChart", "hiderChart");
+  const chart = new SimulationChart(
+    "resultsChart",
+    "pointsChart",
+    "hiderTimesChart"
+  );
   chart.generateComparisonChart(simulations);
+  chart.generatePointsChart(pointsResults);
+  chart.generateHiderTimesChart(hiderTimesResults);
+  renderAllResultsTables(simulations, simulationParams);
 }
 
 function reloadPage() {
@@ -90,6 +114,66 @@ document
   .getElementById("finishButton")
   .addEventListener("click", finishSimulations);
 document.getElementById("reloadButton").addEventListener("click", reloadPage);
+
+function renderAllResultsTables(simulations, params) {
+  const resultsTable = document.getElementById("resultsTable");
+  resultsTable.innerHTML = ""; // Clear existing tables
+
+  simulations.forEach((simulationResults, index) => {
+    const headerRow = `
+      <tr>
+        <th>Simulation #</th>
+        <th>Game Time</th>
+        <th>Hider Times</th>
+        <th>Points Collected</th>
+        <th>Win Status</th>
+      </tr>
+    `;
+
+    const rows = simulationResults
+      .map(
+        (result) => `
+      <tr>
+        <td>${result.simulationNumber}</td>
+        <td>${result.gameTime}</td>
+        <td>${result.hiderTimes.join(", ")}</td>
+        <td>${result.pointsCollected}</td>
+        <td>${result.winStatus}</td>
+      </tr>
+    `
+      )
+      .join("");
+
+    const totalGameTime = simulationResults.reduce(
+      (sum, result) => sum + result.gameTime,
+      0
+    );
+    const averageGameTime = (totalGameTime / simulationResults.length).toFixed(
+      2
+    );
+
+    const paramList = `
+      <ul>
+        <li>Number of Simulations: ${params[index].numSimulations}</li>
+        <li>Number of Hiders: ${params[index].numHiders}</li>
+        <li>View Radius: ${params[index].viewRadius}</li>
+        <li>Seeker Speed: ${params[index].seekerSpeed}</li>
+        <li>Hider Speed: ${params[index].hiderSpeed}</li>
+        <li>Hider View Radius: ${params[index].hiderViewRadius}</li>
+        <li>Number of Points: ${params[index].numPoints}</li>
+        <li>Simulation Speed: ${params[index].simulationSpeed}</li>
+        <li>Obstacle Set: ${params[index].selectedSet}</li>
+      </ul>
+    `;
+
+    const tableHTML = headerRow + rows;
+    const tableWrapper = document.createElement("div");
+    tableWrapper.innerHTML = `<h3>Results Table Set ${
+      index + 1
+    }</h3>${paramList}<table>${tableHTML}</table><h4>Average Game Time: ${averageGameTime}s</h4>`;
+    resultsTable.appendChild(tableWrapper);
+  });
+}
 
 class Simulation {
   constructor(
@@ -115,6 +199,8 @@ class Simulation {
     this.obstacles = obstacles;
     this.currentSimulation = 0;
     this.results = [];
+    this.pointsResults = [];
+    this.hiderTimesResults = [];
     this.currentGame = null;
     this.onComplete = onComplete;
     this.startTime = null;
@@ -124,7 +210,6 @@ class Simulation {
 
   startSimulation() {
     this.restartSimulation();
-    this.clearResultsTable();
     this.startTime = Date.now();
     this.updateOverallTime();
     this.runNextSimulation();
@@ -136,6 +221,8 @@ class Simulation {
     }
     this.currentSimulation = 0;
     this.results = [];
+    this.pointsResults = [];
+    this.hiderTimesResults = [];
     const timerElement = document.getElementById("timer");
     if (timerElement) {
       timerElement.textContent = `Time: 0s`;
@@ -167,19 +254,6 @@ class Simulation {
     }
   }
 
-  clearResultsTable() {
-    const resultsTable = document.getElementById("resultsTable");
-    resultsTable.innerHTML = `
-      <tr>
-        <th>Simulation #</th>
-        <th>Game Time</th>
-        <th>Hider Times</th>
-        <th>Points Collected</th>
-        <th>Win Status</th>
-      </tr>
-    `;
-  }
-
   updateOverallTime() {
     const overallTimerElement = document.getElementById("overallTimer");
     if (overallTimerElement) {
@@ -202,7 +276,6 @@ class Simulation {
 
   runNextSimulation() {
     if (this.currentSimulation >= this.numSimulations) {
-      this.displayResults();
       if (this.onComplete) {
         clearInterval(this.overallInterval); // Stop the overall timer
         this.onComplete();
@@ -241,37 +314,17 @@ class Simulation {
       winStatus: winStatus ? "Yes" : "No",
     });
 
+    this.pointsResults.push({
+      simulationNumber: this.currentSimulation,
+      pointsCollected,
+    });
+    this.hiderTimesResults.push({
+      simulationNumber: this.currentSimulation,
+      hiderTimes,
+    });
+
     // Short delay before the next simulation
     setTimeout(() => this.runNextSimulation(), 1000);
-  }
-
-  displayResults() {
-    const resultsTable = document.getElementById("resultsTable");
-
-    let totalTime = 0;
-
-    for (let result of this.results) {
-      const hiderTimes = result.hiderTimes.join(", ");
-      resultsTable.innerHTML += `
-        <tr>
-          <td>${result.simulationNumber}</td>
-          <td>${result.gameTime}</td>
-          <td>${hiderTimes}</td>
-          <td>${result.pointsCollected}</td>
-          <td>${result.winStatus}</td>
-        </tr>
-      `;
-
-      totalTime += result.gameTime;
-    }
-
-    const averageTime = totalTime / this.results.length;
-    resultsTable.innerHTML += `
-      <tr>
-        <td colspan="4">Average Game Time</td>
-        <td>${averageTime.toFixed(2)}</td>
-      </tr>
-    `;
   }
 }
 

@@ -53,45 +53,45 @@ class Game {
     console.log(obstacles);
   }
 
-  initHiders() {
-    const segmentSize = 2;
-    const segmentWidth = WIDTH / segmentSize;
-    const segmentHeight = HEIGHT / segmentSize;
+  // initHiders() {
+  //   const segmentSize = 2;
+  //   const segmentWidth = WIDTH / segmentSize;
+  //   const segmentHeight = HEIGHT / segmentSize;
 
-    for (let i = 0; i < this.numHiders; i++) {
-      let x, y;
-      let validPosition = false;
-      while (!validPosition) {
-        const segmentX = Math.floor(Math.random() * segmentSize);
-        const segmentY = Math.floor(Math.random() * segmentSize);
+  //   for (let i = 0; i < this.numHiders; i++) {
+  //     let x, y;
+  //     let validPosition = false;
+  //     while (!validPosition) {
+  //       const segmentX = Math.floor(Math.random() * segmentSize);
+  //       const segmentY = Math.floor(Math.random() * segmentSize);
 
-        if (segmentX === 0 && segmentY === 0) {
-          continue;
-        }
+  //       if (segmentX === 0 && segmentY === 0) {
+  //         continue;
+  //       }
 
-        x =
-          Math.floor(Math.random() * (segmentWidth - 20)) +
-          segmentX * segmentWidth +
-          10;
-        y =
-          Math.floor(Math.random() * (segmentHeight - 20)) +
-          segmentY * segmentHeight +
-          10;
+  //       x =
+  //         Math.floor(Math.random() * (segmentWidth - 20)) +
+  //         segmentX * segmentWidth +
+  //         10;
+  //       y =
+  //         Math.floor(Math.random() * (segmentHeight - 20)) +
+  //         segmentY * segmentHeight +
+  //         10;
 
-        const newHider = new Hider(
-          x,
-          y,
-          10,
-          this.hiderSpeed,
-          this.hiderViewRadius
-        );
-        if (this.isPositionValid(newHider)) {
-          validPosition = true;
-          this.hiders.push(newHider);
-        }
-      }
-    }
-  }
+  //       const newHider = new Hider(
+  //         x,
+  //         y,
+  //         10,
+  //         this.hiderSpeed,
+  //         this.hiderViewRadius
+  //       );
+  //       if (this.isPositionValid(newHider)) {
+  //         validPosition = true;
+  //         this.hiders.push(newHider);
+  //       }
+  //     }
+  //   }
+  // }
 
   generatePoints(numPoints) {
     for (let i = 0; i < numPoints; i++) {
@@ -147,6 +147,23 @@ class Game {
     const x = 10;
     const y = 10;
     this.seeker = new Seeker(x, y, 10, this.viewRadius, this.seekerSpeed);
+  }
+
+  initHiders() {
+    const x = 790;
+    const y = 790;
+
+    for (let i = 0; i < this.numHiders; i++) {
+      const newHider = new Hider(
+        x,
+        y,
+        10,
+        this.hiderSpeed,
+        this.hiderViewRadius
+      );
+
+      this.hiders.push(newHider);
+    }
   }
 
   checkCollision() {

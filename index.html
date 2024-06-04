@@ -33,7 +33,8 @@
         text-align: center;
       }
       #resultsChart,
-      #hiderChart {
+      #pointsChart,
+      #hiderTimesChart {
         display: flex;
         max-width: 800px;
         margin-top: 20px;
@@ -50,7 +51,8 @@
     <div>
       <canvas id="gameCanvas" width="800" height="800"></canvas>
       <canvas id="resultsChart"></canvas>
-      <canvas id="hiderChart"></canvas>
+      <canvas id="pointsChart"></canvas>
+      <canvas id="hiderTimesChart"></canvas>
     </div>
 
     <div class="parameters">
@@ -170,7 +172,7 @@
       <div id="secondTimer">Simulation Time: 0s</div>
       <div id="overallTimer">Overall Time: 0s</div>
       <div id="currentSimulation">Current Simulation: 0</div>
-      <table id="resultsTable"></table>
+      <div id="resultsTable"></div>
     </div>
     <script type="module" src="simulation.js"></script>
   </body>

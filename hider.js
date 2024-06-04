@@ -125,7 +125,9 @@ export default class Hider extends Player {
       }
     }
 
+    // Sprawdź, czy możemy się przemieścić na nową pozycję
     if (!this.canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles)) {
+      // Jeśli nie, znajdź alternatywną trasę
       this.avoidObstacle(dx, dy, WIDTH, HEIGHT, obstacles);
     } else {
       this.x = newX;
@@ -137,9 +139,9 @@ export default class Hider extends Player {
     let directions = [];
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      directions = dx > 0 ? [3, 0, 1] : [2, 0, 1]; // right or left
+      directions = dx > 0 ? [3, 0, 1, 2] : [2, 0, 1, 3]; // right or left
     } else {
-      directions = dy > 0 ? [1, 2, 3] : [0, 2, 3]; // down or up
+      directions = dy > 0 ? [1, 2, 3, 0] : [0, 2, 3, 1]; // down or up
     }
 
     for (let direction of directions) {
@@ -168,6 +170,30 @@ export default class Hider extends Player {
         break;
       }
     }
+  }
+
+  canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles) {
+    if (
+      newX - this.radius < 0 ||
+      newX + this.radius > WIDTH ||
+      newY - this.radius < 0 ||
+      newY + this.radius > HEIGHT
+    ) {
+      return false;
+    }
+
+    for (let obstacle of obstacles) {
+      if (
+        newX + this.radius > obstacle.x &&
+        newX - this.radius < obstacle.x + obstacle.width &&
+        newY + this.radius > obstacle.y &&
+        newY - this.radius < obstacle.y + obstacle.height
+      ) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   hasCollectedPoint(point) {
