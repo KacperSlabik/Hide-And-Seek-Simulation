@@ -5,7 +5,7 @@ import Obstacle from "./obstacle.js";
 const WIDTH = 800;
 const HEIGHT = 800;
 
-let simulation;
+let simulations = [];
 
 async function fetchObstacleSets() {
   const response = await fetch("obstacles.json");
@@ -43,7 +43,7 @@ async function startSimulation() {
       new Obstacle(data.x, data.y, data.width, data.height, data.permeable)
   );
 
-  simulation = new Simulation(
+  const simulation = new Simulation(
     numSimulations,
     numHiders,
     viewRadius,
@@ -54,14 +54,26 @@ async function startSimulation() {
     simulationSpeed,
     obstacles,
     () => {
+      simulations.push(simulation.results);
       startButton.disabled = false;
-      const chart = new SimulationChart("resultsChart", "hiderChart");
-      chart.generateChart(simulation.results);
-      chart.generateHiderChart(simulation.results);
+      const continueButton = document.getElementById("continueButton");
+      continueButton.style.display = "inline-block";
     }
   );
 
   simulation.startSimulation();
+}
+
+function continueSimulation() {
+  const continueButton = document.getElementById("continueButton");
+  continueButton.style.display = "none";
+
+  startSimulation();
+}
+
+function finishSimulations() {
+  const chart = new SimulationChart("resultsChart", "hiderChart");
+  chart.generateComparisonChart(simulations);
 }
 
 function reloadPage() {
@@ -71,6 +83,12 @@ function reloadPage() {
 document
   .getElementById("startButton")
   .addEventListener("click", startSimulation);
+document
+  .getElementById("continueButton")
+  .addEventListener("click", continueSimulation);
+document
+  .getElementById("finishButton")
+  .addEventListener("click", finishSimulations);
 document.getElementById("reloadButton").addEventListener("click", reloadPage);
 
 class Simulation {

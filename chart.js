@@ -1,58 +1,46 @@
 class SimulationChart {
-  constructor(canvasId, hiderCanvasId) {
-    this.canvasId = canvasId;
-    this.hiderCanvasId = hiderCanvasId;
-    this.chart = null;
+  constructor(resultsChartId, hiderChartId) {
+    this.resultsChartId = resultsChartId;
+    this.hiderChartId = hiderChartId;
+    this.resultsChart = null;
     this.hiderChart = null;
   }
 
-  generateChart(simulationResults) {
-    const gameTimes = simulationResults.map((result) => result.gameTime);
-    const cumulativeTimes = [];
-    let cumulativeTime = 0;
+  generateComparisonChart(simulations) {
+    const datasets = simulations.map((simulation, index) => ({
+      label: `Simulation Set ${index + 1}`,
+      data: simulation.map((result) => ({
+        x: result.simulationNumber,
+        y: result.gameTime,
+      })),
+      fill: false,
+      borderColor: this.getRandomColor(),
+      tension: 0.1,
+    }));
 
-    gameTimes.forEach((time) => {
-      cumulativeTime += time;
-      cumulativeTimes.push(cumulativeTime);
-    });
-
-    const ctx = document.getElementById(this.canvasId).getContext("2d");
-
-    const data = {
-      labels: cumulativeTimes,
-      datasets: [
-        {
-          label: "Game Time",
-          data: gameTimes,
-          borderColor: "rgba(75, 192, 192, 1)",
-          backgroundColor: "rgba(75, 192, 192, 0.2)",
-          fill: false,
-        },
-      ],
-    };
-
-    if (this.chart) {
-      this.chart.destroy();
+    const ctx = document.getElementById(this.resultsChartId).getContext("2d");
+    if (this.resultsChart) {
+      this.resultsChart.destroy();
     }
-
-    this.chart = new Chart(ctx, {
+    this.resultsChart = new Chart(ctx, {
       type: "line",
-      data: data,
+      data: {
+        datasets: datasets,
+      },
       options: {
-        responsive: true,
         scales: {
           x: {
-            display: true,
+            type: "linear",
+            position: "bottom",
             title: {
               display: true,
-              text: "Cumulative Time (s)",
+              text: "Simulation Number",
             },
           },
           y: {
-            display: true,
             title: {
               display: true,
-              text: "Game Time (s)",
+              text: "Game Time",
             },
           },
         },
@@ -60,65 +48,13 @@ class SimulationChart {
     });
   }
 
-  generateHiderChart(simulationResults) {
-    const datasets = simulationResults.map((result, index) => {
-      const hiderData = result.hiderTimes.map((time, hiderIndex) => {
-        return {
-          x: time,
-          y: hiderIndex + 1,
-        };
-      });
-
-      const color = `hsl(${
-        (index * 360) / simulationResults.length
-      }, 100%, 50%)`;
-
-      return {
-        label: `Simulation ${index + 1}`,
-        data: hiderData,
-        borderColor: color,
-        backgroundColor: color,
-        fill: false,
-        showLine: true,
-        tension: 0.1,
-      };
-    });
-
-    const ctx = document.getElementById(this.hiderCanvasId).getContext("2d");
-
-    const data = {
-      datasets: datasets,
-    };
-
-    if (this.hiderChart) {
-      this.hiderChart.destroy();
+  getRandomColor() {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
     }
-
-    this.hiderChart = new Chart(ctx, {
-      type: "line",
-      data: data,
-      options: {
-        responsive: true,
-        scales: {
-          x: {
-            display: true,
-            title: {
-              display: true,
-              text: "Game Time (s)",
-            },
-            type: "linear",
-            position: "bottom",
-          },
-          y: {
-            display: true,
-            title: {
-              display: true,
-              text: "Hiders Found",
-            },
-          },
-        },
-      },
-    });
+    return color;
   }
 }
 

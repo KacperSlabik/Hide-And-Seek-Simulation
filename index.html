@@ -38,6 +38,11 @@
         max-width: 800px;
         margin-top: 20px;
       }
+      .buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
@@ -155,8 +160,12 @@
           obstacles
         </label>
       </div>
-      <button id="startButton">Start Simulation</button>
-      <button id="reloadButton">Reload</button>
+      <div class="buttons">
+        <button id="startButton">Start Simulation</button>
+        <button id="continueButton" style="display: none">Continue</button>
+        <button id="finishButton">Finish Simulations</button>
+        <button id="reloadButton">Reload</button>
+      </div>
       <div id="timer">Time: 0s</div>
       <div id="secondTimer">Simulation Time: 0s</div>
       <div id="overallTimer">Overall Time: 0s</div>
