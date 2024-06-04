@@ -93,18 +93,20 @@ class SimulationChart {
   }
 
   generateHiderTimesChart(hiderTimesResults) {
-    const datasets = hiderTimesResults.map((hiderTimesResult, index) => ({
-      label: `Simulation Set ${index + 1}`,
-      data: hiderTimesResult.flatMap((result) =>
-        result.hiderTimes.map((time) => ({
-          x: time, // The time each hider was found
-          y: result.simulationNumber, // The simulation number
-        }))
-      ),
-      fill: false,
-      borderColor: this.getRandomColor(),
-      tension: 0.1,
-    }));
+    const datasets = hiderTimesResults.map((hiderTimesResult, index) => {
+      const data = hiderTimesResult.map((result) => ({
+        x: result.simulationNumber,
+        y: result.hiderTimes.length, // liczba złapanych hiderów w każdej rundzie
+      }));
+
+      return {
+        label: `Simulation Set ${index + 1}`,
+        data: data,
+        fill: false,
+        borderColor: this.getRandomColor(),
+        tension: 0.1,
+      };
+    });
 
     const ctx = document
       .getElementById(this.hiderTimesChartId)
@@ -124,18 +126,17 @@ class SimulationChart {
             position: "bottom",
             title: {
               display: true,
-              text: "Time Found (s)",
-            },
-            ticks: {
-              callback: function (value) {
-                return `${value}s`;
-              },
+              text: "Simulation Number",
             },
           },
           y: {
             title: {
               display: true,
-              text: "Simulation Number",
+              text: "Number of Hiders Found",
+            },
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
             },
           },
         },

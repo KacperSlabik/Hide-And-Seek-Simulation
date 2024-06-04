@@ -56,7 +56,7 @@
     </div>
 
     <div class="parameters">
-      <h1>PARAMETRY GRY</h1>
+      <h1>SIMULATION SETTINGS</h1>
       <div>
         <h3>Simulation</h3>
         <label for="numSimulations">Number of Simulations:</label>
@@ -67,6 +67,17 @@
           min="1"
           max="100"
           value="10"
+        />
+        <br />
+
+        <label for="simulationSpeed">Speed Multiplier:</label>
+        <input
+          type="number"
+          id="simulationSpeed"
+          name="simulationSpeed"
+          min="1"
+          max="10"
+          value="1"
         />
       </div>
       <div>
@@ -133,18 +144,7 @@
           value="10"
         />
       </div>
-      <div>
-        <h3>Simulation Speed</h3>
-        <label for="simulationSpeed">Speed Multiplier:</label>
-        <input
-          type="number"
-          id="simulationSpeed"
-          name="simulationSpeed"
-          min="1"
-          max="10"
-          value="1"
-        />
-      </div>
+      <div></div>
       <div>
         <h3>Obstacles</h3>
         <label>
@@ -164,8 +164,10 @@
       </div>
       <div class="buttons">
         <button id="startButton">Start Simulation</button>
-        <button id="continueButton" style="display: none">Continue</button>
-        <button id="finishButton">Finish Simulations</button>
+        <button id="continueButton" style="display: none">
+          Continue with new parameters
+        </button>
+        <button id="finishButton">Finish all (Generate charts)</button>
         <button id="reloadButton">Reload</button>
       </div>
       <div id="timer">Time: 0s</div>
