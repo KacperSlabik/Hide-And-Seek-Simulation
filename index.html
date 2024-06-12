@@ -1,181 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Seeker and Hiders Game</title>
-    <style>
-      canvas {
-        background: #fff;
-        border: 2px solid black;
-      }
-      .parameters {
-        margin-top: 20px;
-      }
-      #timer,
-      #secondTimer {
-        font-size: 24px;
-        margin-top: 10px;
-      }
-      body {
-        display: flex;
-        flex-direction: row;
-        gap: 20px;
-      }
-      table {
-        border-collapse: collapse;
-        width: 100%;
-      }
-      th,
-      td {
-        border: 1px solid black;
-        padding: 8px;
-        text-align: center;
-      }
-      #resultsChart,
-      #pointsChart,
-      #hiderTimesChart {
-        display: flex;
-        max-width: 800px;
-        margin-top: 20px;
-      }
-      .buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
-  <body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seeker and Hiders Game</title>
+  <style>
+    canvas {
+      background: #fff;
+      border: 2px solid black;
+    }
+
+    .parameters {
+      margin-top: 20px;
+    }
+
+    #timer,
+    #secondTimer {
+      font-size: 24px;
+      margin-top: 10px;
+    }
+
+    body {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: center;
+    }
+
+    #resultsChart,
+    #pointsChart,
+    #hiderTimesChart {
+      display: flex;
+      max-width: 800px;
+      margin-top: 20px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div>
+    <canvas id="gameCanvas" width="800" height="800"></canvas>
+    <canvas id="resultsChart"></canvas>
+    <canvas id="pointsChart"></canvas>
+    <canvas id="hiderTimesChart"></canvas>
+  </div>
+
+  <div class="parameters">
+    <h1>SIMULATION SETTINGS</h1>
     <div>
-      <canvas id="gameCanvas" width="800" height="800"></canvas>
-      <canvas id="resultsChart"></canvas>
-      <canvas id="pointsChart"></canvas>
-      <canvas id="hiderTimesChart"></canvas>
-    </div>
+      <h3>Simulation</h3>
+      <label for="numSimulations">Number of Simulations:</label>
+      <input type="number" id="numSimulations" name="numSimulations" min="1" max="100" value="10" />
+      <br />
 
-    <div class="parameters">
-      <h1>SIMULATION SETTINGS</h1>
-      <div>
-        <h3>Simulation</h3>
-        <label for="numSimulations">Number of Simulations:</label>
-        <input
-          type="number"
-          id="numSimulations"
-          name="numSimulations"
-          min="1"
-          max="100"
-          value="10"
-        />
-        <br />
-
-        <label for="simulationSpeed">Speed Multiplier:</label>
-        <input
-          type="number"
-          id="simulationSpeed"
-          name="simulationSpeed"
-          min="1"
-          max="10"
-          value="1"
-        />
-      </div>
-      <div>
-        <h3>Seeker</h3>
-        <label for="viewRadius">View Radius:</label>
-        <input
-          type="number"
-          id="viewRadius"
-          name="viewRadius"
-          min="10"
-          max="200"
-          value="75"
-        />
-        <br />
-        <label for="seekerSpeed">Seeker Speed:</label>
-        <input
-          type="number"
-          id="seekerSpeed"
-          name="seekerSpeed"
-          min="1"
-          max="10"
-          value="2"
-        />
-      </div>
-      <div>
-        <h3>Hider</h3>
-        <label for="numHiders">Number of Hiders:</label>
-        <input
-          type="number"
-          id="numHiders"
-          name="numHiders"
-          min="1"
-          max="20"
-          value="5"
-        />
-        <br />
-        <label for="hiderSpeed">Hider Speed:</label>
-        <input
-          type="number"
-          id="hiderSpeed"
-          name="hiderSpeed"
-          min="1"
-          max="10"
-          value="1"
-        />
-        <br />
-        <label for="hiderViewRadius">Hider View Radius:</label>
-        <input
-          type="number"
-          id="hiderViewRadius"
-          name="hiderViewRadius"
-          min="10"
-          max="200"
-          value="50"
-        />
-        <br />
-        <label for="numPoints">Number of Points:</label>
-        <input
-          type="number"
-          id="numPoints"
-          name="numPoints"
-          min="1"
-          max="50"
-          value="10"
-        />
-      </div>
-      <div></div>
-      <div>
-        <h3>Obstacles</h3>
-        <label>
-          <input type="radio" name="obstacleSet" value="set1" checked /> 20
-          impermeable obstacles
-        </label>
-        <br />
-        <label>
-          <input type="radio" name="obstacleSet" value="set2" /> 10 impermeable
-          obstacles | 10 permeable obstacles
-        </label>
-        <br />
-        <label>
-          <input type="radio" name="obstacleSet" value="set3" /> 20 permeable
-          obstacles
-        </label>
-      </div>
-      <div class="buttons">
-        <button id="startButton">Start Simulation</button>
-        <button id="continueButton" style="display: none">
-          Continue with new parameters
-        </button>
-        <button id="finishButton">Finish all (Generate charts)</button>
-        <button id="reloadButton">Reload</button>
-      </div>
-      <div id="timer">Time: 0s</div>
-      <div id="secondTimer">Simulation Time: 0s</div>
-      <div id="overallTimer">Overall Time: 0s</div>
-      <div id="currentSimulation">Current Simulation: 0</div>
-      <div id="resultsTable"></div>
+      <label for="simulationSpeed">Speed Multiplier:</label>
+      <input type="number" id="simulationSpeed" name="simulationSpeed" min="1" max="10" value="1" />
     </div>
-    <script type="module" src="simulation.js"></script>
-  </body>
+    <div>
+      <h3>Seeker</h3>
+      <label for="viewRadius">View Radius:</label>
+      <input type="number" id="viewRadius" name="viewRadius" min="10" max="200" value="75" />
+      <br />
+      <label for="seekerSpeed">Seeker Speed:</label>
+      <input type="number" id="seekerSpeed" name="seekerSpeed" min="1" max="10" value="2" />
+    </div>
+    <div>
+      <h3>Hider</h3>
+      <label for="numHiders">Number of Hiders:</label>
+      <input type="number" id="numHiders" name="numHiders" min="1" max="20" value="5" />
+      <br />
+      <label for="hiderSpeed">Hider Speed:</label>
+      <input type="number" id="hiderSpeed" name="hiderSpeed" min="1" max="10" value="1" />
+      <br />
+      <label for="hiderViewRadius">Hider View Radius:</label>
+      <input type="number" id="hiderViewRadius" name="hiderViewRadius" min="10" max="200" value="50" />
+      <br />
+      <label for="numPoints">Number of Points:</label>
+      <input type="number" id="numPoints" name="numPoints" min="1" max="50" value="10" />
+    </div>
+    <div></div>
+    <div>
+      <h3>Obstacles</h3>
+      <label>
+        <input type="radio" name="obstacleSet" value="set1" checked /> 20
+        impermeable obstacles
+      </label>
+      <br />
+      <label>
+        <input type="radio" name="obstacleSet" value="set2" /> 10 impermeable
+        obstacles | 10 permeable obstacles
+      </label>
+      <br />
+      <label>
+        <input type="radio" name="obstacleSet" value="set3" /> 20 permeable
+        obstacles
+      </label>
+    </div>
+    <div class="buttons">
+      <button id="startButton">Start Simulation</button>
+      <button id="continueButton" style="display: none">
+        Continue with new parameters
+      </button>
+      <button id="finishButton">Finish all (Generate charts)</button>
+      <button id="reloadButton">Reload</button>
+    </div>
+    <div id="timer">Time: 0s</div>
+    <!-- <div id="secondTimer">Simulation Time: 0s</div> -->
+    <div id="overallTimer">Overall Time: 0s</div>
+    <div id="currentSimulation">Current Simulation: 0</div>
+    <div id="resultsTable"></div>
+  </div>
+  <script type="module" src="simulation.js"></script>
+</body>
+
 </html>

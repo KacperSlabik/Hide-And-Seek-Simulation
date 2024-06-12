@@ -96,7 +96,7 @@ class SimulationChart {
     const datasets = hiderTimesResults.map((hiderTimesResult, index) => {
       const data = hiderTimesResult.map((result) => ({
         x: result.simulationNumber,
-        y: result.hiderTimes.length, // liczba złapanych hiderów w każdej rundzie
+        y: result.hiderTimes.length, 
       }));
 
       return {

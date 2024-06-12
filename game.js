@@ -275,7 +275,7 @@ class Game {
     }
     this.gameTime = 0;
     this.hiderTimes = [];
-    this.pointsCollected = 0; // Reset collected points
+    this.pointsCollected = 0;
     if (this.timerElement) {
       this.timerElement.textContent = `Time: ${this.gameTime}s`;
     }

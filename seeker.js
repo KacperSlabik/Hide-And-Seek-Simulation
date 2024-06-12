@@ -46,11 +46,9 @@ export default class Seeker extends Player {
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance < this.speed) {
-      // Jeśli jesteśmy bardzo blisko celu, przejdź bezpośrednio do niego
       newX = target.x;
       newY = target.y;
     } else {
-      // Normalny ruch w kierunku celu
       if (Math.abs(dx) > Math.abs(dy)) {
         newX += dx > 0 ? this.speed : -this.speed;
         this.direction = dx > 0 ? 3 : 2; // Right or left
@@ -226,7 +224,7 @@ export default class Seeker extends Player {
   }
 
   draw(ctx, obstacles) {
-    super.draw(ctx); // Draw the seeker
-    this.drawViewRadius(ctx, obstacles); // Draw the view radius
+    super.draw(ctx);
+    this.drawViewRadius(ctx, obstacles); 
   }
 }

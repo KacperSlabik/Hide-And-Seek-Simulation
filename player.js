@@ -10,7 +10,7 @@ export default class Player {
 
   changeDirection() {
     this.direction = Math.floor(Math.random() * 4);
-    this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed; // time to move in one direction (1 to 3 seconds)
+    this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed; 
   }
 
   getDirectionString() {
@@ -29,7 +29,7 @@ export default class Player {
   }
 
   move(WIDTH, HEIGHT, obstacles) {
-    if (this.speed === 0) return; // Stop moving if speed is zero
+    if (this.speed === 0) return; 
 
     if (this.moveTime <= 0) {
       this.changeDirection();

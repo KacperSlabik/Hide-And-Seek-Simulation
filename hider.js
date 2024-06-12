@@ -3,8 +3,8 @@ import Player from "./player.js";
 export default class Hider extends Player {
   constructor(x, y, radius, speed, viewRadius) {
     super(x, y, radius, speed, "blue");
-    this.found = false; // Mark as not found initially
-    this.viewRadius = viewRadius; // Add viewRadius to Hider
+    this.found = false; 
+    this.viewRadius = viewRadius; 
   }
 
   escapeFrom(seeker, obstacles) {
@@ -17,30 +17,24 @@ export default class Hider extends Player {
       const dy = nearestObstacle.y + nearestObstacle.height / 2 - this.y;
 
       if (Math.abs(dx) > Math.abs(dy)) {
-        this.direction = dx > 0 ? 3 : 2; // move right if dx > 0, left if dx < 0
+        this.direction = dx > 0 ? 3 : 2; 
       } else {
-        this.direction = dy > 0 ? 1 : 0; // move down if dy > 0, up if dy < 0
+        this.direction = dy > 0 ? 1 : 0;
       }
-      this.moveTime = ((Math.floor(Math.random() * 5) + 1) * 60) / this.speed; // time to move in one direction (1 to 5 seconds)
+      this.moveTime = ((Math.floor(Math.random() * 5) + 1) * 60) / this.speed; 
 
-      // console.log(
-      //   `Hider escaping from seeker towards nearest permeable obstacle facing ${this.getDirectionString()}`
-      // );
+
     } else {
-      // Move directly away from seeker if no suitable permeable obstacle is found
+ 
       const dx = this.x - seeker.x;
       const dy = this.y - seeker.y;
 
       if (Math.abs(dx) > Math.abs(dy)) {
-        this.direction = dx > 0 ? 3 : 2; // move right if dx > 0, left if dx < 0
+        this.direction = dx > 0 ? 3 : 2;
       } else {
-        this.direction = dy > 0 ? 1 : 0; // move down if dy > 0, up if dy < 0
+        this.direction = dy > 0 ? 1 : 0; 
       }
-      this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed; // time to move in one direction (1 to 3 seconds)
-
-      // console.log(
-      //   `Hider escaping from seeker facing ${this.getDirectionString()}`
-      // );
+      this.moveTime = ((Math.floor(Math.random() * 3) + 1) * 60) / this.speed; 
     }
   }
 
@@ -111,23 +105,19 @@ export default class Hider extends Player {
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance < this.speed) {
-      // Jeśli jesteśmy bardzo blisko punktu, przejdź bezpośrednio do niego
       newX = point.x;
       newY = point.y;
     } else {
-      // Normalny ruch w kierunku punktu
       if (Math.abs(dx) > Math.abs(dy)) {
         newX += dx > 0 ? this.speed : -this.speed;
-        this.direction = dx > 0 ? 3 : 2; // Right or left
+        this.direction = dx > 0 ? 3 : 2; 
       } else {
         newY += dy > 0 ? this.speed : -this.speed;
-        this.direction = dy > 0 ? 1 : 0; // Down or up
+        this.direction = dy > 0 ? 1 : 0; 
       }
     }
 
-    // Sprawdź, czy możemy się przemieścić na nową pozycję
     if (!this.canMoveTo(newX, newY, WIDTH, HEIGHT, obstacles)) {
-      // Jeśli nie, znajdź alternatywną trasę
       this.avoidObstacle(dx, dy, WIDTH, HEIGHT, obstacles);
     } else {
       this.x = newX;
@@ -139,9 +129,9 @@ export default class Hider extends Player {
     let directions = [];
 
     if (Math.abs(dx) > Math.abs(dy)) {
-      directions = dx > 0 ? [3, 0, 1, 2] : [2, 0, 1, 3]; // right or left
+      directions = dx > 0 ? [3, 0, 1, 2] : [2, 0, 1, 3]; 
     } else {
-      directions = dy > 0 ? [1, 2, 3, 0] : [0, 2, 3, 1]; // down or up
+      directions = dy > 0 ? [1, 2, 3, 0] : [0, 2, 3, 1]; 
     }
 
     for (let direction of directions) {
@@ -252,7 +242,7 @@ export default class Hider extends Player {
   }
 
   drawViewRadius(ctx, obstacles) {
-    if (this.found) return; // Don't draw view radius if the hider is found
+    if (this.found) return; 
 
     ctx.fillStyle = "rgba(0, 0, 255, 0.3)";
     ctx.beginPath();
@@ -293,7 +283,7 @@ export default class Hider extends Player {
   }
 
   draw(ctx, obstacles) {
-    super.draw(ctx); // Draw the hider
-    this.drawViewRadius(ctx, obstacles); // Draw the view radius
+    super.draw(ctx);
+    this.drawViewRadius(ctx, obstacles); 
   }
 }
